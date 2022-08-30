@@ -1,0 +1,44 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: fake-jenkins-server
+  labels:
+    app.kubernetes.io/component: server
+    app.kubernetes.io/part-of: fake-jenkins
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/component: server
+      app.kubernetes.io/part-of: fake-jenkins
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/component: server
+        app.kubernetes.io/part-of: fake-jenkins
+    spec:
+      containers:
+        - name: fake-jenkins-server
+          image: ko://github.com/carto-run/fake-jenkins
+          imagePullPolicy: IfNotPresent
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: fake-jenkins-server
+  labels:
+    app.kubernetes.io/component: service
+    app.kubernetes.io/part-of: fake-jenkins
+
+spec:
+  selector:
+    app.kubernetes.io/component: server
+    app.kubernetes.io/part-of: fake-jenkins
+  ports:
+    - port: 8080
+      name: http
+      targetPort: 8080
+    - port: 8443
+      name: https
+      targetPort: 8443

@@ -1,0 +1,38 @@
+#@ load("@ytt:overlay", "overlay")
+#@ load("@ytt:data", "data")
+#@ load("@ytt:base64", "base64")
+
+#@overlay/match by=overlay.subset({"apiVersion": "apps/v1", "kind": "Deployment", "metadata":{"name": "fake-jenkins-server"}})
+---
+spec:
+  template:
+    spec:
+      containers:
+      #@overlay/match by=overlay.all, expects="1+"
+      - name: fake-jenkins-server
+        #@overlay/match missing_ok=True
+        args:
+        - -cert
+        - /config/cert/cert.pem
+        - -key
+        - /config/cert/key.pem
+        #@overlay/match missing_ok=True
+        volumeMounts:
+          - name: cert
+            mountPath: /config/cert
+            readOnly: true
+      #@overlay/match missing_ok=True
+      volumes:
+        - name: cert
+          secret:
+            defaultMode: 420
+            secretName: fake-jenkins-server-tls-kp
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: fake-jenkins-server-tls-kp
+type: Opaque
+stringData:
+  cert.pem: #@ base64.encode(data.values.cert_pem)
+  key.pem: #@ base64.encode(data.values.key_pem)
