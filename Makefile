@@ -32,6 +32,10 @@ $(CERT_DIR) $(TOOLS_BIN_DIR):
 $(GOLANGCI_LINT): $(TOOLS_BIN_DIR)
 	go build -tags=tools -o $@ github.com/golangci/golangci-lint/cmd/golangci-lint
 
+.PHONY: test
+test: ## Run the golang test suite.
+	go test ./...
+
 $(GINKGO): $(TOOLS_BIN_DIR)
 	go build -tags=tools -o $@ github.com/onsi/ginkgo/v2/ginkgo
 
