@@ -45,7 +45,7 @@ from opening when running on Mac OS.
 ## Deploying to a cluster
 
 ```bash
-ko resolve -f config/fake-jenkins-deployment.yaml | kubectl apply -f -
+ko resolve -f config/fake-jenkins-deployment.yml | kubectl apply -f -
 ```
 
 ## Deploying with a cert to a cluster
