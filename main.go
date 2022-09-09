@@ -3,6 +3,7 @@ package main
 import (
 	"flag"
 	"fmt"
+	"github.com/carto-run/fake-jenkins/constants"
 	"log"
 	"net/http"
 	"net/url"
@@ -20,8 +21,6 @@ const (
 	jobWithParametersUsingDefaults  = 101
 	jobWithParametersWithParameters = 102
 	jobWithoutParameters            = 103
-
-	defaultPort = 8080
 )
 
 func main() {
@@ -32,7 +31,7 @@ func main() {
 
 	flag.StringVar(&certFile, "cert", "", "Location of a file containing the TLS certificate")
 	flag.StringVar(&keyFile, "key", "", "Location of the file containing the key of the TLS certificate")
-	flag.IntVar(&port, "port", defaultPort, "Port to run the server on (8443 will be used if TLS certs are specified)")
+	flag.IntVar(&port, "port", constants.DefaultPort, "Port to run the server on (8443 will be used if TLS certs are specified)")
 	flag.BoolVar(&bindLocalhost, "local", false, "Bind to localhost (127.0.0.1) only")
 
 	flag.Parse()
