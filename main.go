@@ -129,22 +129,22 @@ const jobInfoWithSourceParameters = `{
 					"_class": "hudson.model.StringParameterDefinition",
 					"defaultParameterValue": {
 						"_class": "hudson.model.StringParameterValue",
-						"name": "source-url",
+						"name": "SOURCE_URL",
 						"value": "something"
 					},
 					"description": null,
-					"name": "source-url",
+					"name": "SOURCE_URL",
 					"type": "StringParameterDefinition"
 				},
 				{
 					"_class": "hudson.model.StringParameterDefinition",
 					"defaultParameterValue": {
 						"_class": "hudson.model.StringParameterValue",
-						"name": "source-revision",
+						"name": "SOURCE_REVISION",
 						"value": "something"
 					},
 					"description": null,
-					"name": "source-revision",
+					"name": "SOURCE_REVISION",
 					"type": "StringParameterDefinition"
 				}
 			]
