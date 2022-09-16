@@ -3,7 +3,7 @@ name: Publish
 on:
   push:
     branches: ['main']
-  pull_request:
+  pull_request: # FIXME this needs to be removed before merging
 
 jobs:
   publish:
@@ -17,3 +17,5 @@ jobs:
 
       - uses: imjasonh/setup-ko@v0.6
       - run: ko publish --bare ./
+        env:
+          GITHUB_TOKEN: ${ secrets.PACKAGES_TOKEN }
