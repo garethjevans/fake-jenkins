@@ -16,14 +16,11 @@ import (
 
 var srv *http.Server
 var servingScheme string
-
-const (
-	jobWithParametersUsingDefaults  = 101
-	jobWithParametersWithParameters = 102
-	jobWithoutParameters            = 103
-)
+var buildInfo map[int]BuildInfo
 
 func main() {
+	buildInfo = make(map[int]BuildInfo)
+
 	var certFile string
 	var keyFile string
 	var port int
@@ -121,6 +118,40 @@ const jobInfoWithParameters = `{
 	]
 }`
 
+const jobInfoWithSourceParameters = `{
+	"name": "job-with-source-parameters",
+	"url": "http://%s/job/job-with-source-parameters/",
+	"property": [
+		{
+			"_class": "hudson.model.ParametersDefinitionProperty",
+			"parameterDefinitions": [
+				{
+					"_class": "hudson.model.StringParameterDefinition",
+					"defaultParameterValue": {
+						"_class": "hudson.model.StringParameterValue",
+						"name": "source-url",
+						"value": "something"
+					},
+					"description": null,
+					"name": "source-url",
+					"type": "StringParameterDefinition"
+				},
+				{
+					"_class": "hudson.model.StringParameterDefinition",
+					"defaultParameterValue": {
+						"_class": "hudson.model.StringParameterValue",
+						"name": "source-revision",
+						"value": "something"
+					},
+					"description": null,
+					"name": "source-revision",
+					"type": "StringParameterDefinition"
+				}
+			]
+		}
+	]
+}`
+
 func JobInfoHandler(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	name := vars["name"]
@@ -143,6 +174,15 @@ func JobInfoHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if name == "job-with-source-parameters" {
+		w.Header().Add("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+		body := fmt.Sprintf(jobInfoWithSourceParameters, srv.Addr)
+		fmt.Println(body)
+		fmt.Fprint(w, body)
+		return
+	}
+
 	fmt.Println("[WARN] unknown job", name)
 	w.WriteHeader(http.StatusNotFound)
 }
@@ -152,10 +192,13 @@ func BuildHandler(w http.ResponseWriter, r *http.Request) {
 	name := vars["name"]
 	log.Println("scheduling job", name)
 
+	nextIndex := len(buildInfo) + 1
+	buildInfo[nextIndex] = BuildInfo{Job: name}
+
 	location := url.URL{
 		Scheme: servingScheme,
 		Host:   r.Host,
-		Path:   fmt.Sprintf("queue/%d", jobWithoutParameters),
+		Path:   fmt.Sprintf("queue/%d", nextIndex),
 	}
 
 	log.Println(location.String())
@@ -175,18 +218,13 @@ func BuildHandlerWithParameters(w http.ResponseWriter, r *http.Request) {
 	}
 	log.Println("Params", len(r.Form))
 
-	if len(r.Form) == 0 {
-		location = url.URL{
-			Scheme: servingScheme,
-			Host:   r.Host,
-			Path:   fmt.Sprintf("queue/%d", jobWithParametersUsingDefaults),
-		}
-	} else {
-		location = url.URL{
-			Scheme: servingScheme,
-			Host:   r.Host,
-			Path:   fmt.Sprintf("queue/%d", jobWithParametersWithParameters),
-		}
+	nextIndex := len(buildInfo) + 1
+	buildInfo[nextIndex] = BuildInfo{Job: name, Parameters: r.Form}
+
+	location = url.URL{
+		Scheme: servingScheme,
+		Host:   r.Host,
+		Path:   fmt.Sprintf("queue/%d", nextIndex),
 	}
 
 	log.Println(location.String())
@@ -223,12 +261,12 @@ func BuildLogHandler(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 
 	var body string
-	if id == jobWithParametersUsingDefaults {
-		body = `Hello, world!`
-	} else if id == jobWithParametersWithParameters {
-		body = `Hello, buddy!`
+
+	bi, ok := buildInfo[id]
+	if !ok {
+		body = fmt.Sprintf("Build %d not found", id)
 	} else {
-		body = `Hello, everyone!`
+		body = bi.Log()
 	}
 
 	fmt.Println(body)
@@ -242,4 +280,13 @@ func loggingMiddleware(next http.Handler) http.Handler {
 		// Call the next handler, which can be another middleware in the chain, or the final handler.
 		next.ServeHTTP(w, r)
 	})
+}
+
+type BuildInfo struct {
+	Job        string
+	Parameters url.Values
+}
+
+func (b *BuildInfo) Log() string {
+	return fmt.Sprintf("[%s] Running with args %s", b.Job, b.Parameters)
 }
