@@ -16,6 +16,10 @@ jobs:
       - uses: actions/checkout@v2
 
       - uses: imjasonh/setup-ko@v0.6
-      - run: ko publish --bare ./
+      - run: |
+          echo "${{ secrets.PACKAGES_TOKEN }}" | ko login ghcr.io --username "dummy" --password-stdin
+
+          ko publish --bare ./
         env:
           GITHUB_TOKEN: ${ secrets.PACKAGES_TOKEN }
+          KO_DOCKER_REPO: ghcr.io/carto-run/fake-jenkins
