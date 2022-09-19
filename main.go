@@ -263,10 +263,10 @@ func BuildLogHandler(w http.ResponseWriter, r *http.Request) {
 	var body string
 
 	bi, ok := buildInfo[id]
-	if !ok {
-		body = fmt.Sprintf("Build %d not found", id)
-	} else {
+	if ok {
 		body = bi.Log()
+	} else {
+		body = fmt.Sprintf("Build %d not found", id)
 	}
 
 	fmt.Println(body)
