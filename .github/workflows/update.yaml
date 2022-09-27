@@ -1,0 +1,32 @@
+---
+name: Update Woke Config
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '*/15 * * * *'
+
+jobs:
+  update_cli:
+    runs-on: ubuntu-latest
+    steps:
+
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Update CLI
+        run: |
+          curl -sSfL -o .woke.yaml https://vmw-its-woke-client-rules-resources-stg.s3.us-west-2.amazonaws.com/its-woke-rules.yaml
+        env:
+          ACCESS_TOKEN: ${{ secrets.PACKAGES_TOKEN }}
+
+      - name: Create Pull Request
+        id: cpr
+        uses: peter-evans/create-pull-request@v3
+        with:
+          token: ${{ secrets.PACKAGES_TOKEN }}
+          commit-message: 'chore: update woke configuration'
+          committer: Gareth Evans <gareth@bryncynfelin.co.uk>
+          author: ${{ github.actor }} <${{ github.actor }}@users.noreply.github.com>
+          signoff: false
+          title: 'chore: update woke configuration'
