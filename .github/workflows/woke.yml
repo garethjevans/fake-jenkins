@@ -13,3 +13,4 @@ jobs:
         uses: get-woke/woke-action@v0
         with:
           fail-on-error: true
+          woke-args: -c https://vmw-its-woke-client-rules-resources-stg.s3.us-west-2.amazonaws.com/its-woke-rules.yaml .
